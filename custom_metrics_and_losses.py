@@ -2,6 +2,11 @@ import torch
 from scipy.spatial import distance
 from rdkit.Chem import AllChem as Chem
 
+def calculate_correlations(x, y):
+  vx = x - torch.mean(x,dim=-1,keepdim=True)
+  vy = y - torch.mean(y,dim=-1,keepdim=True)
+  return torch.sum(vx * vy,dim=-1) / (torch.sqrt(torch.sum(vx ** 2,dim=-1)) * torch.sqrt(torch.sum(vy ** 2,dim=-1)))
+
 def differentiable_tanimoto_distance(target,pred):
   """"
   Computes a differentiable approximation of the tanimoto distance / Intersection Over Union, that could be used with pytorch and gpus: 
