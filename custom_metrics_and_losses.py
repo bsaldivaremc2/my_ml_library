@@ -62,3 +62,45 @@ def get_tanimoto_similarity(s1,s2):
 
 def get_tanimoto_similarity_from_mfp(fp1,fp2):
     return 1 - distance.jaccard(fp1, fp2)
+
+def rowwise_correlations(x,y,return_numpy=True,use_gpu=False):
+  """
+  Computes correlations row from X against rows from Y
+  """
+  with torch.no_grad():
+    if not torch.is_tensor(x):
+      x = torch.tensor(x)
+    if not torch.is_tensor(y):
+      y = torch.tensor(y)
+    if use_gpu:
+      x = x.cuda()
+      y = y.cuda()
+    r = torch_calculate_correlations(x,y)
+    if return_numpy:
+      r = r.cpu().numpy()
+    return r
+
+def pairwise_correlations(x, y, return_numpy=True, use_gpu=False):
+  """
+  Computes correlations all rows from X against all rows from Y
+  """
+  with torch.no_grad():
+      if not torch.is_tensor(x):
+          x = torch.tensor(x)
+      if not torch.is_tensor(y):
+          y = torch.tensor(y)
+      if use_gpu:
+        x = x.cuda()
+        y = y.cuda()
+
+      # Reshape x and y for broadcasting
+      x = x.unsqueeze(1)  # Add a singleton dimension along axis 1
+      y = y.unsqueeze(0)  # Add a singleton dimension along axis 0
+
+      # Calculate correlations
+      r = torch_calculate_correlations(x, y)
+
+      if return_numpy:
+          r = r.cpu().numpy()
+
+    return r
