@@ -110,6 +110,8 @@ def pairwise_correlations(x, y, return_numpy=True, use_gpu=False):
 
 def get_paiwise_iou(imatrix,device="cuda:0",return_complete_matrix=False,is_distance=False):
   """
+  Returns element wise matrix of IntersectionOverUnion, Tanimoto Similarity or Jaccard Distance.
+  Input: torch tensor, numpy array or list of numpy vectors. All types should be integer already.
   device="cuda:0". Define if you use cuda (GPU) or cpu device="cpu"
   return_complete_matrix=False. If True, the diagonal and complementary section of the matrix is also filled
   is_distance=False. By default computes Tanimoto Similarity, Intersection Over Union. Set to True to get Jaccard distance.
@@ -121,7 +123,7 @@ def get_paiwise_iou(imatrix,device="cuda:0",return_complete_matrix=False,is_dist
     _o = np.zeros((n_elements,n_elements))
     print("Start")
     if not torch.is_tensor(imatrix):
-      _i = torch.tensor(imatrix,dtype=torch.float16)
+      _i = torch.tensor(imatrix,dtype=torch.int)
     _i = _i.to(device)
     for _row in tqdm(range(n_elements-1)):
       second_vector_start = _row+1
