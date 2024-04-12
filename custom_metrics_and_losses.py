@@ -1,4 +1,7 @@
 import torch
+import numpy as np
+from tqdm import tqdm
+from scipy.spatial import distance
 from scipy.spatial import distance
 from rdkit.Chem import AllChem as Chem
 
@@ -104,3 +107,34 @@ def pairwise_correlations(x, y, return_numpy=True, use_gpu=False):
           r = r.cpu().numpy()
 
     return r
+
+def get_paiwise_iou(imatrix,device="cuda:0",return_complete_matrix=False,is_distance=False):
+  """
+  device="cuda:0". Define if you use cuda (GPU) or cpu device="cpu"
+  return_complete_matrix=False. If True, the diagonal and complementary section of the matrix is also filled
+  is_distance=False. By default computes Tanimoto Similarity, Intersection Over Union. Set to True to get Jaccard distance.
+  """
+  with torch.no_grad():
+    n_elements = imatrix.shape[0]
+    _i = imatrix
+    print("generating output empty")
+    _o = np.zeros((n_elements,n_elements))
+    print("Start")
+    if not torch.is_tensor(imatrix):
+      _i = torch.tensor(imatrix,dtype=torch.float16)
+    _i = _i.to(device)
+    for _row in tqdm(range(n_elements-1)):
+      second_vector_start = _row+1
+      if return_complete_matrix:
+        second_vector_start = _row
+      _v = _i[_row,:]
+      _m = _i[second_vector_start:,:]
+      i = (_v&_m).sum(1)
+      u = (_v|_m).sum(1)
+      iou = (i/u).cpu().numpy()
+      if is_distance:
+        iou = 1 - iou
+      _o[_row,second_vector_start:]=iou
+      if return_complete_matrix:
+        _o[second_vector_start:,_row]=iou
+  return _o
